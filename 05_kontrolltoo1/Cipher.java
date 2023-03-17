@@ -7,20 +7,26 @@ public class Cipher {
     private static final String INPUT_FILE = "input.txt";
     private static final String OUTPUT_FILE = "output.txt";
 
-    private static final int ALPHABET_SIZE = 26;
+    private static final int ALPHABET_SIZE = 27;
 
     public static void main(String[] args) {
         // Loeme sisse sisendi failist
         String input = readFromFile(INPUT_FILE);
 
+        // Saame nihke suuruse faili esimeselt realt
+        int shift = getShiftFromInput(input);
+
+        // Eemaldame esimese rea sisendist, et järele jääks ainult sõnum
+        input = removeFirstLine(input);
+
         // Teeme šifreerimise
-        String encrypted = encrypt(input, 1);
+        String encrypted = encrypt(input, shift);
 
         // Salvestame tulemuse väljundfaili
         saveToFile(OUTPUT_FILE, encrypted);
 
         // Dešifreerime šifreeritud sõnumi
-        String decrypted = decrypt(encrypted, 1);
+        String decrypted = decrypt(encrypted, shift);
 
         // Väljastame dešifreeritud sõnumi
         System.out.println("Decrypted message: " + decrypted);
@@ -31,7 +37,12 @@ public class Cipher {
         for (char c : message.toCharArray()) {
             if (Character.isLetter(c)) {
                 char base = Character.isLowerCase(c) ? 'a' : 'A';
-                c = (char) (((c - base + shift) % ALPHABET_SIZE + ALPHABET_SIZE) % ALPHABET_SIZE + base);
+                // Leiame tähe asukoha tähestikus
+                int pos = c - base;
+                // Lisame nihke ja võtame tähe uue asukoha tähestikus
+                pos = (pos + shift) % ALPHABET_SIZE;
+                // Leiame uue tähe vastavalt uuele asukohale
+                c = (char) (pos + base);
             }
             result.append(c);
         }
@@ -61,5 +72,20 @@ public class Cipher {
         } catch (FileNotFoundException e) {
             System.err.println("File not found: " + e.getMessage());
         }
+    }
+
+    private static int getShiftFromInput(String input) {
+        Scanner scanner = new Scanner(input);
+        int shift = scanner.nextInt();
+        scanner.close();
+        return shift;
+    }
+
+    private static String removeFirstLine(String input) {
+        int pos = input.indexOf("\n");
+        if (pos >= 0) {
+            return input.substring(pos + 1);
+        }
+        return input;
     }
 }
